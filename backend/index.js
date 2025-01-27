@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
-// import { connectDB } from "./db/connectDB.js";
+import { connectDB } from "./db/connectDB.js";
 // import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
@@ -16,6 +16,10 @@ app.use(cookieParser()); //allow for parsing incoming cookies
 
 // app.use("/api/auth", authRoutes);
 
+// app.get("/", (req, res) => {
+//   res.send("Hello World!");
+// }); // simple way to check if the server is running
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
@@ -24,6 +28,6 @@ if (process.env.NODE_ENV === "production") {
   });
 } //configuring static files when deplying
 app.listen(PORT, () => {
-  // connectDB();
+  connectDB();
   console.log(`Server running on port ${PORT}`);
 });

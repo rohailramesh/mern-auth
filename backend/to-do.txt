@@ -1,0 +1,3 @@
+- complete the functions in emails.js for mailtrap
+- complete the auth.controller functions
+- update .env file
