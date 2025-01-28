@@ -8,38 +8,88 @@ import {
   sendVerificationEmail,
   sendWelcomeEmail,
 } from "../mailtrap/emails.js";
+// export const signup = async (req, res) => {
+//   const { email, name, password } = req.body; //getting the email, password and name from the request body when this controller is activated
+//   try {
+//     if (!name || !email || !password) {
+//       return res.status(400).json({ message: "All fields are required." });
+//     }
+//     if (password.length < 6) {
+//       return res
+//         .status(400)
+//         .json({ message: "Password must be atleast 6 characters long." });
+//     }
+//     const userAlreadyExists = await User.findOne({ email });
+//     if (userAlreadyExists) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+//     const salt = await bcrypt.genSalt(10); //generating salt to hash password with
+//     const hashedPassword = await bcrypt.hash(password, salt);
+//     const verificationToken = Math.floor(
+//       100000 + Math.random() * 900000
+//     ).toString(); //generates a 6-digit random number as a string
+//     const user = new User({
+//       email,
+//       password: hashedPassword,
+//       name,
+//       verificationToken,
+//       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, //expires in 24hrs from the time this user signs up
+//     });
+//     await user.save();
+
+//     // once user is created, create a jwt token by passing user id of this user as arg and set cookie
+//     generateTokenAndSetCookie(res, user._id);
+//     await sendVerificationEmail(user.email, verificationToken);
+//     res.status(201).json({
+//       success: true,
+//       message: "User created successfully",
+//       user: {
+//         ...user._doc,
+//         password: undefined,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(400).json({ success: false, message: error.message });
+//   }
+// };
+
 export const signup = async (req, res) => {
-  const { email, name, password } = req.body; //getting the email, password and name from the request body when this controller is activated
+  const { email, password, name } = req.body;
+
   try {
-    if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required." });
+    if (!email || !password || !name) {
+      throw new Error("All fields are required");
     }
-    if (password.length < 6) {
+
+    const userAlreadyExists = await User.findOne({ email });
+    console.log("userAlreadyExists", userAlreadyExists);
+
+    if (userAlreadyExists) {
       return res
         .status(400)
-        .json({ message: "Password must be atleast 6 characters long." });
+        .json({ success: false, message: "User already exists" });
     }
-    const userAlreadyExists = await User.findOne({ email });
-    if (userAlreadyExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    const salt = await bcrypt.genSalt(10); //generating salt to hash password with
-    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = Math.floor(
       100000 + Math.random() * 900000
-    ).toString(); //generates a 6-digit random number as a string
+    ).toString();
+
     const user = new User({
       email,
       password: hashedPassword,
       name,
       verificationToken,
-      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, //expires in 24hrs from the time this user signs up
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
+
     await user.save();
 
-    // once user is created, create a jwt token by passing user id of this user as arg and set cookie
+    // jwt
     generateTokenAndSetCookie(res, user._id);
+
     await sendVerificationEmail(user.email, verificationToken);
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -49,7 +99,7 @@ export const signup = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: message.error });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
